@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "friends",
+  "info": {
+    "name": "Friends",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "user_a": {
+      "model": "users"
+    },
+    "user_b": {
+      "model": "users"
+    }
+  }
+}

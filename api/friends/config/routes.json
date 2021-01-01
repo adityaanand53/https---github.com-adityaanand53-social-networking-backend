@@ -1,0 +1,60 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/friends",
+      "handler": "friends.find",
+      "config": {
+        "policies": ["users.isValidUser"]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/friends/count",
+      "handler": "friends.count",
+      "config": {
+        "policies": ["users.isValidUser"]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/friends/:id",
+      "handler": "friends.findOne",
+      "config": {
+        "policies": ["users.isValidUser"]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/friends/search/:q",
+      "handler": "friends.search",
+      "config": {
+        "policies": ["users.isValidUser"]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/friends/:freindUserId",
+      "handler": "friends.create",
+      "config": {
+        "policies": ["users.isValidUser"]
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/friends/:id",
+      "handler": "friends.update",
+      "config": {
+        "policies": ["users.isValidUser"]
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/friends/:id",
+      "handler": "friends.delete",
+      "config": {
+        "policies": ["users.isValidUser"]
+      }
+    }
+  ]
+}

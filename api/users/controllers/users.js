@@ -74,7 +74,7 @@ const register = async (ctx) => {
   ctx.send({ success: "User created successfully" });
 };
 
-const posts = async (ctx, data) => {
+const posts = async (ctx) => {
   // console.log("query", JSON.stringify(ctx.user));
 
   const entityByUserId = await strapi.services.users.findOne({
@@ -83,19 +83,51 @@ const posts = async (ctx, data) => {
 
   const userids = [
     ctx.user.id,
-    ...((entityByUserId.freinds && entityByUserId.freinds.length) ? entityByUserId.freinds : []),
+    ...(entityByUserId.friends && entityByUserId.friends.length
+      ? entityByUserId.friends
+      : []),
   ];
 
   const allPosts = await strapi.services.posts.find({
-    'user.id_in': userids,
-    "_sort": 'created_at:desc'
+    "user.id_in": userids,
+    _sort: "created_at:desc",
   });
 
   ctx.send(allPosts);
+};
+
+const find = async (ctx) => {
+  // console.log("query", JSON.stringify(ctx.user));
+
+  // const entityByUserId = await strapi.services.users.findOne({
+  //   id: ctx.user.id,
+  // });
+  const allFriends = await strapi.services.friends.find({
+    _where: {
+      _or: [{ ["user_a.id"]: ctx.user.id }, { ["user_b.id"]: ctx.user.id }],
+    },
+  });
+  const relatedUsers = [...allFriends.map((d) => d.user_a.id), ...allFriends.map((d) => d.user_b.id)];
+  console.log(relatedUsers);
+  const friendSuggestions = await strapi.services.users.find({
+    id_nin: relatedUsers,
+    _limit: 20,
+  });
+
+  ctx.send(
+    friendSuggestions.map((user) => {
+      return {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+      };
+    })
+  );
 };
 
 module.exports = {
   login,
   register,
   posts,
+  find,
 };

@@ -17,15 +17,15 @@
     "email": {
       "type": "email"
     },
-    "freinds": {
-      "type": "json"
-    },
     "username": {
       "type": "string",
       "unique": true
     },
     "password": {
       "type": "string"
+    },
+    "introduction": {
+      "type": "text"
     }
   }
 }
