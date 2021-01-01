@@ -88,6 +88,7 @@ const posts = async (ctx, data) => {
 
   const allPosts = await strapi.services.posts.find({
     'user.id_in': userids,
+    "_sort": 'created_at:desc'
   });
 
   ctx.send(allPosts);

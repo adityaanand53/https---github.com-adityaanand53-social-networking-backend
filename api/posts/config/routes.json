@@ -26,6 +26,14 @@
     },
     {
       "method": "POST",
+      "path": "/posts/:id/:likedById",
+      "handler": "posts.updateLike",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "POST",
       "path": "/posts",
       "handler": "posts.create",
       "config": {
