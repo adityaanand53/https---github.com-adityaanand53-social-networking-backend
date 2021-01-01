@@ -1,0 +1,68 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/users",
+      "handler": "users.find",
+      "config": {
+        "policies": ["isValidUser"]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/users/count",
+      "handler": "users.count",
+      "config": {
+        "policies": ["isValidUser"]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/users/posts",
+      "handler": "users.posts",
+      "config": {
+        "policies": ["isValidUser"]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/users/:id",
+      "handler": "users.findOne",
+      "config": {
+        "policies": ["isValidUser"]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/users/login",
+      "handler": "users.login",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/users/register",
+      "handler": "users.register",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/users/:id",
+      "handler": "users.update",
+      "config": {
+        "policies": ["isValidUser"]
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/users/:id",
+      "handler": "users.delete",
+      "config": {
+        "policies": ["isValidUser"]
+      }
+    }
+  ]
+}

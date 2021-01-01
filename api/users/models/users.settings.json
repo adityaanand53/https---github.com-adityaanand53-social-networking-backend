@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "coreuser",
+  "info": {
+    "name": "CoreUser",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "freinds": {
+      "type": "json"
+    },
+    "username": {
+      "type": "string",
+      "unique": true
+    },
+    "password": {
+      "type": "string"
+    }
+  }
+}
