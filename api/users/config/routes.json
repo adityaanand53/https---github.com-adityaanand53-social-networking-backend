@@ -10,6 +10,14 @@
     },
     {
       "method": "GET",
+      "path": "/users/suggestions",
+      "handler": "users.suggestions",
+      "config": {
+        "policies": ["isValidUser"]
+      }
+    },
+    {
+      "method": "GET",
       "path": "/users/count",
       "handler": "users.count",
       "config": {
@@ -20,6 +28,14 @@
       "method": "GET",
       "path": "/users/posts",
       "handler": "users.posts",
+      "config": {
+        "policies": ["isValidUser"]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/users/friend",
+      "handler": "users.getfriendsList",
       "config": {
         "policies": ["isValidUser"]
       }

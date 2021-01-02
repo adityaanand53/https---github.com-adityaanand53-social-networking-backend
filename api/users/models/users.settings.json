@@ -22,7 +22,8 @@
       "unique": true
     },
     "password": {
-      "type": "string"
+      "type": "string",
+      "private": true
     },
     "introduction": {
       "type": "text"

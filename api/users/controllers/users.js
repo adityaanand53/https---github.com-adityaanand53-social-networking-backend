@@ -1,11 +1,9 @@
 "use strict";
+const { sanitizeEntity } = require("strapi-utils");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-/**
- * Read the documentation (https://strapi.io/documentation/developer-docs/latest/concepts/controllers.html#core-controllers)
- * to customize this controller
- */
+
 //login post request
 const login = async (ctx) => {
   try {
@@ -14,7 +12,7 @@ const login = async (ctx) => {
     });
 
     if (!entityByEmail) {
-      ctx.send({ error: "Incorrect username or password" });
+      return ctx.send({ message: "Incorrect username or password" });
     }
 
     const saltedPassword = entityByEmail.password;
@@ -31,103 +29,183 @@ const login = async (ctx) => {
           expiresIn: 86400, // expires in 24 hours
         }
       );
-      ctx.send({
+      return ctx.send({
         success: "Logged in successfully!",
         username: entityByEmail.username,
         id: entityByEmail.id,
         token,
       });
     } else {
-      ctx.send({ error: "Incorrect username or password" });
+      return ctx.send({ message: "Incorrect username or password" });
     }
   } catch (ex) {
     console.error(ex);
+    return ctx.send(
+      {
+        message: "Something went wrong. Please try after some time.",
+      },
+      500
+    );
   }
 };
 
 //register post request
 const register = async (ctx) => {
-  //check if user exist
+  try {
+    //check if user exist
+    const entityByEmail = await strapi.services.users.findOne({
+      email: ctx.request.body.email,
+    });
 
-  const entityByEmail = await strapi.services.users.findOne({
-    email: ctx.request.body.email,
-  });
-  console.log(entityByEmail);
-  if (entityByEmail) {
-    ctx.send({ error: "Email Id already exists." });
-  }
-  const entityByUserName = await strapi.services.users.findOne({
-    username: ctx.request.body.username,
-  });
-  if (entityByUserName) {
-    ctx.send({ error: "Username already exists." });
-  }
-  //the hash has the salt
-  const hash = await bcrypt.hash(ctx.request.body.password, 10);
-  await strapi.services.users.create({
-    name: ctx.request.body.name,
-    username: ctx.request.body.username,
-    password: hash,
-    email: ctx.request.body.email,
-  });
+    if (entityByEmail && Object.keys(entityByEmail).length) {
+      return ctx.send({ message: "Email Id already exists." }, 409);
+    }
+    const entityByUserName = await strapi.services.users.findOne({
+      username: ctx.request.body.username,
+    });
 
-  ctx.send({ success: "User created successfully" });
+    if (entityByUserName && Object.keys(entityByUserName).length) {
+      return ctx.send({ message: "Username already exists." }, 409);
+    }
+
+    //the hash has the salt
+    const hash = await bcrypt.hash(ctx.request.body.password, 10);
+    await strapi.services.users.create({
+      name: ctx.request.body.name,
+      username: ctx.request.body.username,
+      password: hash,
+      email: ctx.request.body.email,
+    });
+
+    return ctx.send({ success: "User created successfully" });
+  } catch (err) {
+    return ctx.send(
+      {
+        message: "Something went wrong. Please try after some time.",
+      },
+      500
+    );
+  }
 };
 
 const posts = async (ctx) => {
-  // console.log("query", JSON.stringify(ctx.user));
+  try {
+    const _start = ctx.query.start;
+    const relatedUsers = await getRelatedUsers(ctx);
 
-  const entityByUserId = await strapi.services.users.findOne({
-    id: ctx.user.id,
-  });
+    const allPosts = await strapi.services.posts.find({
+      "user.id_in":
+        relatedUsers && relatedUsers.length ? relatedUsers : ctx.user.id,
+      _sort: "created_at:desc",
+      _limit: 5,
+      _start,
+    });
 
-  const userids = [
-    ctx.user.id,
-    ...(entityByUserId.friends && entityByUserId.friends.length
-      ? entityByUserId.friends
-      : []),
-  ];
-
-  const allPosts = await strapi.services.posts.find({
-    "user.id_in": userids,
-    _sort: "created_at:desc",
-  });
-
-  ctx.send(allPosts);
+    return ctx.send(
+      allPosts.map((post) =>
+        sanitizeEntity(post, { model: strapi.models.posts })
+      )
+    );
+  } catch (err) {
+    return ctx.send(
+      {
+        message: "Something went wrong. Please try after some time.",
+      },
+      500
+    );
+  }
 };
 
-const find = async (ctx) => {
-  // console.log("query", JSON.stringify(ctx.user));
+const suggestions = async (ctx) => {
+  try {
+    const relatedUsers = await getRelatedUsers(ctx);
+    const friendSuggestions = await strapi.services.users.find({
+      id_nin: relatedUsers,
+      _limit: 20,
+    });
 
-  // const entityByUserId = await strapi.services.users.findOne({
-  //   id: ctx.user.id,
-  // });
-  const allFriends = await strapi.services.friends.find({
-    _where: {
-      _or: [{ ["user_a.id"]: ctx.user.id }, { ["user_b.id"]: ctx.user.id }],
-    },
-  });
-  const relatedUsers = [...allFriends.map((d) => d.user_a.id), ...allFriends.map((d) => d.user_b.id)];
-  console.log(relatedUsers);
-  const friendSuggestions = await strapi.services.users.find({
-    id_nin: relatedUsers,
-    _limit: 20,
-  });
+    return ctx.send(
+      friendSuggestions.map((user) => {
+        return {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+        };
+      })
+    );
+  } catch (err) {
+    return ctx.send(
+      {
+        message: "Something went wrong. Please try after some time.",
+      },
+      500
+    );
+  }
+};
 
-  ctx.send(
-    friendSuggestions.map((user) => {
-      return {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-      };
-    })
-  );
+const getFriends = async (ctx) => {
+  try {
+    return await strapi.services.friends.find({
+      _where: {
+        _or: [{ ["user_a.id"]: ctx.user.id }, { ["user_b.id"]: ctx.user.id }],
+      },
+    });
+  } catch (err) {}
+};
+
+const getRelatedUsers = async (ctx) => {
+  try {
+    const allFriends = await getFriends(ctx);
+    const relatedUsers = [
+      ...new Set([
+        ...allFriends.map((d) => d.user_a.id),
+        ...allFriends.map((d) => d.user_b.id),
+      ]),
+    ];
+    return relatedUsers;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
+const getfriendsList = async (ctx) => {
+  try {
+    const userId = ctx.user.id;
+    const allFriends = await getFriends(ctx);
+    let friendsList = [];
+    if (allFriends && allFriends.length) {
+      friendsList = allFriends.map((friendObj) => {
+        if (friendObj.user_a.id === userId) {
+          return { ...friendObj.user_b, friendId: friendObj.id };
+        } else {
+          return { ...friendObj.user_a, friendId: friendObj.id };
+        }
+      });
+    }
+
+    // if (relatedUsers && relatedUsers.length) {
+    //   friendsList = relatedUsers.filter((user) => user.id !== ctx.user.id);
+    // }
+
+    return ctx.send(
+      friendsList.map((friend) =>
+        sanitizeEntity(friend, { model: strapi.models.users })
+      )
+    );
+  } catch (err) {
+    return ctx.send(
+      {
+        message: "Something went wrong. Please try after some time.",
+      },
+      500
+    );
+  }
 };
 
 module.exports = {
   login,
   register,
   posts,
-  find,
+  suggestions,
+  getfriendsList,
 };
