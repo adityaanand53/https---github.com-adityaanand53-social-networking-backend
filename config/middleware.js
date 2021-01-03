@@ -9,7 +9,7 @@ module.exports = {
     cors: {
       origin: '*',
       enabled: true,
-      headers: ["Content-Type", "Authorization", "X-Frame-Options", 'x-access-token', 'enctype']
+      headers: ["content-type", "Authorization", "X-Frame-Options", 'x-access-token', 'enctype']
     },
   },
 };
