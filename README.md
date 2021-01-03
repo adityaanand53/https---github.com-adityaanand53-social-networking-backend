@@ -1,3 +1,7 @@
 # Strapi application
 
-A quick description of your strapi application
+## To install dependencies
+npm i
+
+## To run on local machine
+npm run develop
